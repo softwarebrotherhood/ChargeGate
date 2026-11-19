@@ -10,7 +10,7 @@
         Height="700" Width="480"
         MinHeight="620" MinWidth="420"
         WindowStartupLocation="CenterScreen"
-        WindowBackdropType="Mica">
+        WindowBackdropType="Auto">
 
     <Window.DataContext>
         <vm:MainViewModel />
@@ -50,7 +50,7 @@
                         <!-- Header with Percent & Health -->
                         <Grid Grid.Row="0">
                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <ui:SymbolIcon Symbol="BatteryCharging24" FontSize="36" Margin="0,0,12,0"
+                                <ui:SymbolIcon Symbol="BatteryCharge24" FontSize="36" Margin="0,0,12,0"
                                                Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" />
                                 <StackPanel>
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom">
