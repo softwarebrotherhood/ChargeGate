@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.3.0] - 2026-11-21
+
+### Added
+- **Dark and Light Appearance Theme Engine:**
+  - Added real-time dynamic switching between **System**, **Dark**, and **Light** themes.
+  - Automatically adapts in real-time to Windows OS theme modifications via `SystemEvents.UserPreferenceChanged`.
+  - Added matching glassmorphic theme toggle on the showcase website (`docs/`) with system dark-mode preference detection.
+- **Brand Identity & High-Resolution Iconography:**
+  - Designed official vector shield logo (`docs/assets/logo.svg`) and multi-resolution Windows icon (`app.ico` supporting 16x16, 32x32, 48x48, 64x64, 128x128, and 256x256).
+  - Integrated into Windows window chrome, dynamic system tray badge, installer setup wizard, and desktop/Start shortcuts.
+- **Google Search Console Verification:**
+  - Integrated site ownership verification meta tag into `docs/index.html` for Google search indexing.
+
+### Fixed
+- **Startup XAML BAML Initialization:**
+  - Resolved `TypeConverterMarkupExtension` startup crash by removing raw XAML icon conversion and loading multi-resolution `app.ico` safely from WPF Pack URI resources in code.
+
 ## [1.2.0] - 2026-11-21
 
 ### Added
