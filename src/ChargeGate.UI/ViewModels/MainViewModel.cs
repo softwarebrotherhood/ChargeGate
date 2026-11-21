@@ -63,6 +63,9 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool _startWithWindows;
 
+    [ObservableProperty]
+    private string _currentTheme = "System";
+
     private bool _isApplying;
 
     public ObservableCollection<ThresholdItemViewModel> ThresholdOptions { get; } = new();
@@ -325,6 +328,25 @@ public partial class MainViewModel : ObservableObject
         var snap = await Task.Run(() => _batteryManager.RefreshSnapshotAsync());
         UpdateFromSnapshot(snap);
         StatusFeedback = "Battery state updated.";
+    }
+
+    [RelayCommand]
+    public void ToggleTheme()
+    {
+        CurrentTheme = CurrentTheme switch
+        {
+            "System" => "Dark",
+            "Dark" => "Light",
+            "Light" => "System",
+            _ => "System"
+        };
+
+        if (Application.Current?.MainWindow is MainWindow mw)
+        {
+            mw.ApplyTheme(CurrentTheme);
+        }
+
+        StatusFeedback = $"Theme switched to: {CurrentTheme}";
     }
 
     [RelayCommand]

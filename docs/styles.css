@@ -4,6 +4,10 @@
   --card-bg: rgba(26, 34, 52, 0.65);
   --card-border: rgba(255, 255, 255, 0.08);
   --card-hover-border: rgba(16, 185, 129, 0.4);
+  --navbar-bg: rgba(10, 14, 23, 0.85);
+  --mockup-bg: rgba(18, 24, 38, 0.88);
+  --mockup-card-bg: rgba(255, 255, 255, 0.04);
+  --footer-bg: rgba(8, 11, 18, 0.9);
   
   --accent-primary: #10b981;
   --accent-secondary: #0078d4;
@@ -23,6 +27,22 @@
   --radius-md: 10px;
   --radius-lg: 16px;
   --radius-xl: 24px;
+}
+
+[data-theme="light"] {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #f1f5f9;
+  --card-bg: rgba(255, 255, 255, 0.92);
+  --card-border: rgba(0, 0, 0, 0.08);
+  --card-hover-border: rgba(16, 185, 129, 0.6);
+  --navbar-bg: rgba(248, 250, 252, 0.88);
+  --mockup-bg: rgba(255, 255, 255, 0.96);
+  --mockup-card-bg: rgba(0, 0, 0, 0.03);
+  --footer-bg: rgba(241, 245, 249, 0.95);
+  
+  --text-main: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
 }
 
 * {
@@ -95,7 +115,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 100;
-  background: rgba(10, 14, 23, 0.85);
+  background: var(--navbar-bg);
   backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--card-border);
   padding: 0.85rem 0;
@@ -355,11 +375,11 @@ body {
 
 /* App Mockup Window */
 .mockup-window {
-  background: rgba(18, 24, 38, 0.88);
+  background: var(--mockup-bg);
   backdrop-filter: blur(28px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--card-border);
   border-radius: var(--radius-xl);
-  box-shadow: 0 24px 64px -12px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  box-shadow: 0 24px 64px -12px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.05);
   overflow: hidden;
   max-width: 440px;
   margin: 0 auto;
@@ -404,7 +424,7 @@ body {
 }
 
 .app-card {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--mockup-card-bg);
   border: 1px solid var(--card-border);
   border-radius: var(--radius-md);
   padding: 1rem;
@@ -991,7 +1011,26 @@ body {
 .footer {
   border-top: 1px solid var(--card-border);
   padding: 2.5rem 0;
-  background: rgba(8, 11, 18, 0.9);
+  background: var(--footer-bg);
+}
+
+.btn-theme {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text-main);
+  border: 1px solid var(--card-border);
+  font-size: 1rem;
+  padding: 0.45rem 0.75rem;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.btn-theme:hover {
+  background: rgba(255, 255, 255, 0.16);
+  border-color: var(--card-hover-border);
 }
 
 .footer-content {

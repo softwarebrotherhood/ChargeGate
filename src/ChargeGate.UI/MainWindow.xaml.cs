@@ -29,6 +29,21 @@ public partial class MainWindow : FluentWindow
         }
         catch { }
 
+        ApplyTheme("System");
+        Microsoft.Win32.SystemEvents.UserPreferenceChanged += (s, e) =>
+        {
+            if (e.Category is Microsoft.Win32.UserPreferenceCategory.General or Microsoft.Win32.UserPreferenceCategory.VisualStyle)
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    if (DataContext is ViewModels.MainViewModel vm && vm.CurrentTheme == "System")
+                    {
+                        ApplyTheme("System");
+                    }
+                });
+            }
+        };
+
         Loaded += OnWindowLoaded;
     }
 
@@ -104,6 +119,27 @@ public partial class MainWindow : FluentWindow
         _isExplicitExit = true;
         TrayIcon.Dispose();
         Application.Current.Shutdown();
+    }
+
+    public void ApplyTheme(string themeMode)
+    {
+        try
+        {
+            switch (themeMode)
+            {
+                case "Light":
+                    Wpf.Ui.Appearance.ApplicationThemeManager.Apply(Wpf.Ui.Appearance.ApplicationTheme.Light);
+                    break;
+                case "Dark":
+                    Wpf.Ui.Appearance.ApplicationThemeManager.Apply(Wpf.Ui.Appearance.ApplicationTheme.Dark);
+                    break;
+                case "System":
+                default:
+                    Wpf.Ui.Appearance.ApplicationThemeManager.ApplySystemTheme();
+                    break;
+            }
+        }
+        catch { }
     }
 
     private void RestoreFromTray()

@@ -1,7 +1,56 @@
-// ChargeGate Interactive Demo Script
+// ChargeGate Interactive Demo & Theme Engine
 
 let currentThreshold = 80;
 let isTravelMode = false;
+
+// Theme Engine with System Adaptation
+const THEME_STORAGE_KEY = 'chargegate-theme';
+let webTheme = localStorage.getItem(THEME_STORAGE_KEY) || 'auto';
+
+function initTheme() {
+  applyWebTheme(webTheme);
+
+  // Real-time system theme change watcher
+  const darkQuery = window.matchMedia('(prefers-color-scheme: dark)');
+  if (darkQuery.addEventListener) {
+    darkQuery.addEventListener('change', () => {
+      if (webTheme === 'auto') {
+        applyWebTheme('auto');
+      }
+    });
+  }
+}
+
+function applyWebTheme(mode) {
+  webTheme = mode;
+  const iconEl = document.getElementById('theme-icon');
+  
+  if (mode === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+    if (iconEl) iconEl.textContent = '☀️';
+  } else if (mode === 'dark') {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    if (iconEl) iconEl.textContent = '🌙';
+  } else {
+    // auto: adapt to system preferences
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+    if (iconEl) iconEl.textContent = '🌓';
+  }
+}
+
+function cycleWebTheme() {
+  const next = webTheme === 'auto' ? 'dark' : webTheme === 'dark' ? 'light' : 'auto';
+  localStorage.setItem(THEME_STORAGE_KEY, next);
+  applyWebTheme(next);
+}
+
+// Auto-run theme initialization
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initTheme);
+} else {
+  initTheme();
+}
 
 function applyDemoPreset(percentage, label) {
   currentThreshold = percentage;
