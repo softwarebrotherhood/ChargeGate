@@ -6,6 +6,8 @@ public partial class MainWindow : FluentWindow
 {
     public MainWindow()
     {
+        ExtendsContentIntoTitleBar = true;
+        WindowBackdropType = WindowBackdropType.None;
         InitializeComponent();
     }
 }

@@ -76,31 +76,35 @@ public class HpBatteryProvider : IBatteryProvider
 
         try
         {
-            using var managementClass = new ManagementClass(WmiNamespace, "HP_BIOSSettingInterface", null);
-            using var inParams = managementClass.GetMethodParameters("SetBIOSSetting");
-            
-            inParams["Name"] = SettingName;
-            inParams["Value"] = targetValue;
-            inParams["Password"] = string.Empty;
-
-            using var outParams = managementClass.InvokeMethod("SetBIOSSetting", inParams, null);
-            var returnVal = Convert.ToUInt32(outParams["Return"]);
-
-            // Return == 0 means SUCCESS
-            if (returnVal == 0)
+            using var searcher = new ManagementObjectSearcher(WmiNamespace, "SELECT * FROM HP_BIOSSettingInterface");
+            foreach (ManagementObject instance in searcher.Get())
             {
-                Debug.WriteLine($"[HpBatteryProvider] Successfully set '{SettingName}' to '{targetValue}'");
-                return Task.FromResult(true);
-            }
+                using var inParams = instance.GetMethodParameters("SetBIOSSetting");
+                inParams["Name"] = SettingName;
+                inParams["Value"] = targetValue;
+                inParams["Password"] = string.Empty;
 
-            Debug.WriteLine($"[HpBatteryProvider] SetBIOSSetting returned code {returnVal} (6 = Access Denied / Admin required)");
-            return Task.FromResult(false);
+                using var outParams = instance.InvokeMethod("SetBIOSSetting", inParams, null);
+                var returnVal = Convert.ToUInt32(outParams["Return"]);
+
+                // Return == 0 means SUCCESS
+                if (returnVal == 0)
+                {
+                    Debug.WriteLine($"[HpBatteryProvider] Successfully set '{SettingName}' to '{targetValue}'");
+                    return Task.FromResult(true);
+                }
+
+                Debug.WriteLine($"[HpBatteryProvider] SetBIOSSetting returned code {returnVal} (6 = Access Denied / Admin required)");
+                return Task.FromResult(false);
+            }
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"[HpBatteryProvider] Error setting threshold: {ex.Message}");
             return Task.FromResult(false);
         }
+
+        return Task.FromResult(false);
     }
 
     public async Task<BatterySnapshot> GetSnapshotAsync()

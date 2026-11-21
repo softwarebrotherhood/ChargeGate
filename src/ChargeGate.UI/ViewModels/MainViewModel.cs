@@ -110,10 +110,24 @@ public partial class MainViewModel : ObservableObject
         {
             SelectedThreshold = percentage;
             StatusFeedback = $"Successfully set battery threshold to {percentage}%!";
+
+            var snap = await _batteryManager.RefreshSnapshotAsync();
+            UpdateFromSnapshot(snap);
+
+            MessageBox.Show(
+                $"Battery charge threshold set to {percentage}% ({snap.ActiveModeLabel})!\n\nYour laptop BIOS will now cap charging at this level.",
+                "ChargeGate",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information);
         }
         else
         {
             StatusFeedback = "Failed to apply threshold. Administrator privileges may be required.";
+            MessageBox.Show(
+                "Unable to apply the charge threshold.\n\nPlease ensure ChargeGate is run as Administrator, or that your BIOS allows WMI management.",
+                "ChargeGate Warning",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning);
         }
     }
 
@@ -130,13 +144,13 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     public void OpenGitHub()
     {
-        OpenUrl("https://github.com/your-username/ChargeGate");
+        OpenUrl("https://github.com/softwarebrotherhood/ChargeGate");
     }
 
     [RelayCommand]
     public void OpenSponsor()
     {
-        OpenUrl("https://github.com/sponsors/your-username");
+        OpenUrl("https://github.com/sponsors/softwarebrotherhood");
     }
 
     private static void OpenUrl(string url)
