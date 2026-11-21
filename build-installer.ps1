@@ -65,12 +65,13 @@ try {
 # 2. Locate Inno Setup Compiler
 Write-Host "`n[2/3] Locating Inno Setup Compiler (ISCC.exe)..." -ForegroundColor Yellow
 $isccCandidates = @(
+    (Get-Command iscc.exe -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source -ErrorAction SilentlyContinue),
     (Join-Path $env:LOCALAPPDATA "Programs\Inno Setup 6\ISCC.exe"),
     (Join-Path $env:ProgramFiles "Inno Setup 6\ISCC.exe"),
     "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe"
-)
+) | Where-Object { $_ -and (Test-Path $_) }
 
-$isccPath = $isccCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+$isccPath = $isccCandidates | Select-Object -First 1
 
 if (-not $isccPath) {
     Write-Warning "Inno Setup (ISCC.exe) was not found in standard paths."

@@ -62,7 +62,19 @@ dotnet build
 
 # Run the UI
 dotnet run --project src/ChargeGate.UI/ChargeGate.UI.csproj
+
+# Package Local Windows Installer (.exe) & Portable Binary
+.\build-installer.ps1
+
+# Automate a New Release with Adapted Release Notes
+.\scripts\create-release.ps1 -Version 1.3.0
 ```
+
+---
+
+## Releases & Packaging
+- **GitHub Actions Auto-Release:** Pushing a new version tag (`v*.*.*`) or pushing to `main` with a new version in `CHANGELOG.md` automatically compiles the standalone binary, packages the Inno Setup installer (`ChargeGate-Setup-v*.exe`), generates SHA-256 checksums, extracts version-adapted release notes from `CHANGELOG.md`, and publishes the GitHub Release.
+- **Local Helper:** Maintainers can run `.\scripts\create-release.ps1` to extract notes, build installers locally, and prepare/push tags in one step.
 
 ---
 

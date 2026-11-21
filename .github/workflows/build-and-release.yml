@@ -6,20 +6,84 @@ on:
     tags: [ "v*" ]
   pull_request:
     branches: [ "main" ]
+  workflow_dispatch:
+    inputs:
+      force_release:
+        description: 'Force publish release even if already exists'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
 
 jobs:
   build:
-    name: Build & Package Windows Standalone
+    name: Build, Package & Auto-Release
     runs-on: windows-latest
 
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
 
     - name: Setup .NET 9
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 9.0.x
+
+    - name: Determine Version & Release Target
+      id: release_target
+      shell: pwsh
+      run: |
+        $changelog = Get-Content CHANGELOG.md -Raw
+        $isTag = $env:GITHUB_REF -match '^refs/tags/v(?<ver>[\d\.]+(?:-[\w\.]+)?)'
+        
+        if ($isTag) {
+            $ver = $Matches['ver']
+            $tag = "v$ver"
+            $shouldRelease = "true"
+        } else {
+            if ($changelog -match '##\s+\[(?<ver>[\d\.]+(?:-[\w\.]+)?)\]') {
+                $ver = $Matches['ver']
+            } else {
+                $ver = "1.0.0"
+            }
+            $tag = "v$ver"
+            $shouldRelease = "false"
+            
+            # If on main push, check whether a release for this version already exists
+            if ('${{ github.event_name }}' -eq 'push' -and '${{ github.ref }}' -eq 'refs/heads/main') {
+                try {
+                    $resp = Invoke-RestMethod -Uri "https://api.github.com/repos/${{ github.repository }}/releases/tags/$tag" -Headers @{ "User-Agent" = "GitHubActions"; "Authorization" = "Bearer ${{ secrets.GITHUB_TOKEN }}" } -ErrorAction SilentlyContinue
+                    if (-not $resp.id) {
+                        $shouldRelease = "true"
+                        Write-Host "New version $ver detected on main without an existing release. Triggering release creation!"
+                    } else {
+                        Write-Host "Release $tag already exists on GitHub. Skipping automatic release creation for this push."
+                    }
+                } catch {
+                    $shouldRelease = "true"
+                    Write-Host "Could not query existing release tag ($($_.Exception.Message)). Assuming new release needed."
+                }
+            } elseif ('${{ github.event_name }}' -eq 'workflow_dispatch' -and '${{ inputs.force_release }}' -eq 'true') {
+                $shouldRelease = "true"
+            }
+        }
+        
+        Write-Host "Resolved Version : $ver"
+        Write-Host "Resolved Tag     : $tag"
+        Write-Host "Should Release   : $shouldRelease"
+        
+        "version=$ver" >> $env:GITHUB_OUTPUT
+        "tag=$tag" >> $env:GITHUB_OUTPUT
+        "should_release=$shouldRelease" >> $env:GITHUB_OUTPUT
+
+    - name: Install Inno Setup
+      shell: pwsh
+      run: |
+        choco install innosetup -y --no-progress
+        echo "C:\Program Files (x86)\Inno Setup 6" >> $env:GITHUB_PATH
 
     - name: Restore Dependencies
       run: dotnet restore ChargeGate.sln
@@ -27,33 +91,65 @@ jobs:
     - name: Build Solution
       run: dotnet build ChargeGate.sln -c Release --no-restore
 
-    - name: Publish Single-File Standalone Executable
-      run: >
-        dotnet publish src/ChargeGate.UI/ChargeGate.UI.csproj
-        -c Release
-        -r win-x64
-        --self-contained true
-        -p:PublishSingleFile=true
-        -p:IncludeNativeLibrariesForSelfExtract=true
-        -p:EnableCompressionInSingleFile=true
-        -o publish/
-
-    - name: Create Release Zip
+    - name: Build Installer and Portable Binaries
       shell: pwsh
       run: |
-        Compress-Archive -Path publish/* -DestinationPath ChargeGate-win-x64.zip
+        .\build-installer.ps1
 
-    - name: Upload Build Artifact
+    - name: Package Release Zip
+      shell: pwsh
+      run: |
+        $zipDir = "dist/zip-staging"
+        New-Item -ItemType Directory -Path $zipDir -Force | Out-Null
+        Copy-Item dist/publish/* $zipDir -Recurse -Force
+        Copy-Item README.md, CHANGELOG.md, LICENSE $zipDir -Force -ErrorAction SilentlyContinue
+        Compress-Archive -Path "$zipDir/*" -DestinationPath "dist/ChargeGate-v${{ steps.release_target.outputs.version }}-win-x64.zip" -Force
+        Write-Host "Release zip created: dist/ChargeGate-v${{ steps.release_target.outputs.version }}-win-x64.zip"
+
+    - name: Extract Adapted Release Notes
+      shell: pwsh
+      run: |
+        $notesPath = "dist/RELEASE_NOTES.md"
+        .\scripts\extract-release-notes.ps1 -Version "${{ steps.release_target.outputs.version }}" -OutputPath $notesPath
+        Write-Host "Release Notes generated at $notesPath"
+
+    - name: Generate SHA-256 Checksums
+      shell: pwsh
+      run: |
+        $checksumFile = "dist/SHA256SUMS.txt"
+        $filesToHash = Get-ChildItem -Path "dist/installer/*.exe", "dist/portable/*.exe", "dist/*.zip"
+        $lines = foreach ($file in $filesToHash) {
+            $hash = (Get-FileHash -Path $file.FullName -Algorithm SHA256).Hash.ToLower()
+            "$hash  $($file.Name)"
+        }
+        $lines | Set-Content -Path $checksumFile -Encoding ascii
+        Write-Host "`nSHA-256 Checksums generated:"
+        Get-Content $checksumFile
+
+    - name: Upload Build Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: ChargeGate-win-x64
-        path: ChargeGate-win-x64.zip
+        name: ChargeGate-Build-v${{ steps.release_target.outputs.version }}
+        path: |
+          dist/installer/*.exe
+          dist/portable/*.exe
+          dist/*.zip
+          dist/SHA256SUMS.txt
+          dist/RELEASE_NOTES.md
 
-    - name: Create GitHub Release (On Tag)
-      if: startsWith(github.ref, 'refs/tags/v')
+    - name: Create or Update GitHub Release
+      if: steps.release_target.outputs.should_release == 'true'
       uses: softprops/action-gh-release@v2
       with:
-        files: ChargeGate-win-x64.zip
-        generate_release_notes: true
+        tag_name: ${{ steps.release_target.outputs.tag }}
+        name: ChargeGate ${{ steps.release_target.outputs.tag }}
+        body_path: dist/RELEASE_NOTES.md
+        files: |
+          dist/installer/*.exe
+          dist/portable/*.exe
+          dist/*.zip
+          dist/SHA256SUMS.txt
+        draft: false
+        prerelease: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
