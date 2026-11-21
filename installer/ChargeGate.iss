@@ -3,7 +3,7 @@
 
 #define MyAppName "ChargeGate"
 #define MyAppVersion "1.3.0"
-#define MyAppPublisher "softwarebrotherhood"
+#define MyAppPublisher "SoftwareBrotherHood"
 #define MyAppURL "https://github.com/softwarebrotherhood/ChargeGate"
 #define MyAppExeName "ChargeGate.UI.exe"
 
@@ -22,6 +22,12 @@ OutputDir=..\dist\installer
 OutputBaseFilename=ChargeGate-Setup-v{#MyAppVersion}
 SetupIconFile=app.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
+VersionInfoCompany={#MyAppPublisher}
+VersionInfoDescription={#MyAppName} - Universal Battery Threshold Limiter
+VersionInfoVersion={#MyAppVersion}
+VersionInfoProductVersion={#MyAppVersion}
+VersionInfoProductName={#MyAppName}
+VersionInfoCopyright=Copyright (C) 2026 {#MyAppPublisher}
 Compression=lzma2/ultra64
 SolidCompression=yes
 WizardStyle=modern
