@@ -19,6 +19,12 @@ public partial class MainViewModel : ObservableObject
     private int _healthPercentage = 100;
 
     [ObservableProperty]
+    private string _healthColor = "#10B981";
+
+    [ObservableProperty]
+    private string _capacityStats = string.Empty;
+
+    [ObservableProperty]
     private string _statusDescription = "Detecting power state...";
 
     [ObservableProperty]
@@ -42,7 +48,10 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool _isBusy;
 
-    public ObservableCollection<ThresholdOption> ThresholdOptions { get; } = new();
+    [ObservableProperty]
+    private bool _startWithWindows;
+
+    public ObservableCollection<ThresholdItemViewModel> ThresholdOptions { get; } = new();
 
     public MainViewModel()
     {
@@ -51,10 +60,16 @@ public partial class MainViewModel : ObservableObject
         _batteryManager.AlertTriggered += OnAlertTriggered;
 
         HardwareInfo = $"{_batteryManager.MachineManufacturer} {_batteryManager.MachineModel} • {_batteryManager.ActiveProvider.ProviderName}";
-        
+        _startWithWindows = AutoStartService.IsAutoStartEnabled();
+
         foreach (var opt in _batteryManager.ActiveProvider.SupportedThresholds)
         {
-            ThresholdOptions.Add(opt);
+            ThresholdOptions.Add(new ThresholdItemViewModel(
+                opt.Percentage,
+                opt.Label,
+                opt.Description,
+                opt.RawVendorValue,
+                opt.Percentage == SelectedThreshold));
         }
 
         _ = InitializeAsync();
@@ -81,12 +96,38 @@ public partial class MainViewModel : ObservableObject
         SelectedThreshold = snap.CurrentThresholdPercentage;
         ActiveModeTitle = snap.ActiveModeLabel;
 
+        // Health Color
+        HealthColor = HealthPercentage switch
+        {
+            >= 80 => "#10B981", // Green
+            >= 60 => "#F59E0B", // Amber
+            _ => "#EF4444"      // Red
+        };
+
+        // Capacity calculation
+        if (snap.DesignCapacityMWh > 0 && snap.FullChargeCapacityMWh > 0)
+        {
+            double fullWh = Math.Round(snap.FullChargeCapacityMWh / 1000.0, 1);
+            double designWh = Math.Round(snap.DesignCapacityMWh / 1000.0, 1);
+            CapacityStats = $"{fullWh} Wh / {designWh} Wh";
+        }
+        else
+        {
+            CapacityStats = "Standard Pack";
+        }
+
         StatusDescription = (IsPluggedIn, IsCharging) switch
         {
-            (true, true) => $"Charging ({BatteryPercentage}%) • Plugged into AC",
-            (true, false) => $"Plugged in • Battery capped at {SelectedThreshold}%",
-            (false, _) => $"Discharging ({BatteryPercentage}%) • Running on battery"
+            (true, true) => $"Charging ({BatteryPercentage}%) • AC Connected",
+            (true, false) => $"Plugged in • Charge gated at {SelectedThreshold}%",
+            (false, _) => $"Discharging ({BatteryPercentage}%) • Battery Power"
         };
+
+        // Update active preset badge
+        foreach (var item in ThresholdOptions)
+        {
+            item.IsActive = (item.Percentage == SelectedThreshold);
+        }
     }
 
     private void OnAlertTriggered(string message)
@@ -95,6 +136,11 @@ public partial class MainViewModel : ObservableObject
         {
             StatusFeedback = message;
         });
+    }
+
+    partial void OnStartWithWindowsChanged(bool value)
+    {
+        AutoStartService.SetAutoStart(value);
     }
 
     [RelayCommand]
@@ -150,7 +196,7 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     public void OpenSponsor()
     {
-        OpenUrl("https://github.com/sponsors/softwarebrotherhood");
+        OpenUrl("https://ko-fi.com/softwarebrotherhood");
     }
 
     private static void OpenUrl(string url)

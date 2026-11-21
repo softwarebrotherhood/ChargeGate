@@ -1,5 +1,9 @@
 # ChargeGate
 
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20SoftwareBrotherhood-F16061?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/softwarebrotherhood)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
+[![.NET 9](https://img.shields.io/badge/.NET-9.0-purple.svg?style=for-the-badge)](https://dotnet.microsoft.com/)
+
 **ChargeGate** is a lightweight, open-source battery charge threshold manager for Windows laptops, built with **.NET 9** and Windows 11 Fluent UI.
 
 Prolonged battery exposure to 100% state-of-charge while plugged into wall power accelerates lithium battery degradation. ChargeGate interfaces directly with hardware ACPI and BIOS management controllers to stop charging at healthy thresholds (such as 80%), replacing heavy manufacturer bloatware.
@@ -15,8 +19,11 @@ Prolonged battery exposure to 100% state-of-charge while plugged into wall power
   - **Lenovo**: Supports IdeaPad, Legion (Conservation Mode), and ThinkPad threshold controls.
   - **Dell**: Supports DCIM / Command battery charging profiles.
   - **Universal Fallback**: Active notification and audible alert monitor for laptops without BIOS-level gating.
-- **Fluent Windows 11 UI**: Built with `WPF-UI` and Mica backdrop support.
-- **Zero Background Overhead**: Lightweight native .NET 9 footprint.
+- **System Tray Integration**: Minimizes quietly to the system tray with a double-click restore and right-click quick toggles (80% / 100%).
+- **Start with Windows**: Optional toggle to launch automatically on login.
+- **Battery Health Analytics**: Displays real-time wear percentage, design capacity vs full charge capacity in Watt-hours (Wh).
+- **Fluent Windows 11 UI**: Built with `WPF-UI` with graceful fallback on Windows 10.
+- **Zero Background Overhead**: Lightweight native .NET 9 footprint (~60 MB RAM).
 
 ---
 
@@ -41,8 +48,11 @@ dotnet run --project src/ChargeGate.UI/ChargeGate.UI.csproj
 
 ---
 
-## Contributing & Support
+## Support & Donations
 
-Contributions, bug reports, and hardware profile additions are welcome! Please feel free to submit an issue or pull request.
+If you find ChargeGate useful, please consider supporting independent open-source development:
 
-If you find ChargeGate useful, consider starring the repo or supporting the project via donations.
+[![Support on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/softwarebrotherhood)
+
+- **Donate via Ko-fi**: [https://ko-fi.com/softwarebrotherhood](https://ko-fi.com/softwarebrotherhood)
+- Star the repository to help other laptop users discover the project!
