@@ -21,6 +21,10 @@ public class BatteryManager : IDisposable
     public event Action<BatterySnapshot>? SnapshotUpdated;
     public event Action<int, string>? ThresholdChanged;
     public event Action<string>? AlertTriggered;
+    public event Action<bool>? TravelModeStateChanged;
+
+    public bool IsTravelModeActive { get; private set; }
+    public int TravelRestoreThreshold { get; private set; } = 80;
 
     private bool _alertFiredForCurrentCycle = false;
 
@@ -77,6 +81,12 @@ public class BatteryManager : IDisposable
             if (dell.IsSupported) return dell;
         }
 
+        if (mfg.Contains("ACER"))
+        {
+            var acer = new AcerBatteryProvider();
+            if (acer.IsSupported) return acer;
+        }
+
         // Generic fallback if no specific hardware provider matches or is supported
         return new GenericFallbackProvider();
     }
@@ -112,6 +122,19 @@ public class BatteryManager : IDisposable
         CurrentSnapshot = snapshot;
         SnapshotUpdated?.Invoke(snapshot);
 
+        // Check for Travel Mode auto-revert upon unplugging AC
+        if (IsTravelModeActive && !snapshot.IsPluggedIn)
+        {
+            IsTravelModeActive = false;
+            TravelModeStateChanged?.Invoke(false);
+            int restoreTarget = TravelRestoreThreshold;
+            _ = Task.Run(async () =>
+            {
+                await SetThresholdAsync(restoreTarget);
+                AlertTriggered?.Invoke($"Travel Mode complete: Charger disconnected. Restored {restoreTarget}% battery health limit.");
+            });
+        }
+
         // Check for alert conditions in fallback mode
         if (!IsHardwareControlled && snapshot.IsPluggedIn && snapshot.ChargePercentage >= snapshot.CurrentThresholdPercentage)
         {
@@ -129,8 +152,45 @@ public class BatteryManager : IDisposable
         return snapshot;
     }
 
+    public async Task<bool> ActivateTravelModeAsync()
+    {
+        if (CurrentSnapshot.CurrentThresholdPercentage < 100)
+        {
+            TravelRestoreThreshold = CurrentSnapshot.CurrentThresholdPercentage;
+        }
+        else
+        {
+            TravelRestoreThreshold = 80;
+        }
+
+        bool success = await SetThresholdAsync(100);
+        if (success)
+        {
+            IsTravelModeActive = true;
+            TravelModeStateChanged?.Invoke(true);
+        }
+        return success;
+    }
+
+    public async Task<bool> CancelTravelModeAsync()
+    {
+        bool success = await SetThresholdAsync(TravelRestoreThreshold);
+        if (success)
+        {
+            IsTravelModeActive = false;
+            TravelModeStateChanged?.Invoke(false);
+        }
+        return success;
+    }
+
     public async Task<bool> SetThresholdAsync(int percentage)
     {
+        if (percentage < 100 && IsTravelModeActive)
+        {
+            IsTravelModeActive = false;
+            TravelModeStateChanged?.Invoke(false);
+        }
+
         bool success = await ActiveProvider.SetThresholdAsync(percentage).ConfigureAwait(false);
         if (success)
         {

@@ -44,6 +44,8 @@
                     <MenuItem Header="Quick Limit: 100% (Full Charge)"
                               Command="{Binding ElementName=RootWindow, Path=DataContext.SetThresholdCommand}"
                               CommandParameter="100" />
+                    <MenuItem Header="Travel Mode: Top Up Once (Auto-Revert)"
+                              Command="{Binding ElementName=RootWindow, Path=DataContext.ToggleTravelModeCommand}" />
                     <Separator />
                     <MenuItem Header="Exit ChargeGate" Click="OnTrayExitClick" />
                 </ContextMenu>
@@ -69,6 +71,7 @@
                         Margin="0,0,0,16">
                     <Grid>
                         <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -111,8 +114,32 @@
                                      Height="8"
                                      Margin="0,16,0,8" />
 
+                        <!-- Real-Time Hardware Telemetry Strip -->
+                        <Grid Grid.Row="2" Margin="0,4,0,8">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="Flash24" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,0,4,0" />
+                                <TextBlock Text="{Binding PowerRateText}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
+                                <ui:SymbolIcon Symbol="PlugDisconnected24" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,0,4,0" />
+                                <TextBlock Text="{Binding VoltageText}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right">
+                                <ui:SymbolIcon Symbol="ArrowCounterclockwise24" FontSize="12" Foreground="{DynamicResource TextFillColorSecondaryBrush}" Margin="0,0,4,0" />
+                                <TextBlock Text="{Binding CycleCountText}" FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                            </StackPanel>
+                        </Grid>
+
                         <!-- Active Limit Indicator -->
-                        <Grid Grid.Row="2" Margin="0,4,0,0">
+                        <Grid Grid.Row="3" Margin="0,4,0,0">
                             <TextBlock Text="{Binding ActiveModeTitle, StringFormat='Active Threshold: {0}'}"
                                        FontSize="12" FontWeight="SemiBold"
                                        Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" />
@@ -121,6 +148,47 @@
                                        FontSize="11"
                                        Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
                         </Grid>
+                    </Grid>
+                </Border>
+
+                <!-- Travel Mode Quick Action Card -->
+                <Border Background="{DynamicResource SubtleFillColorSecondaryBrush}"
+                        BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="14"
+                        Margin="0,0,0,14">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                            <StackPanel Orientation="Horizontal">
+                                <ui:SymbolIcon Symbol="Airplane24" FontSize="15" Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}" Margin="0,0,8,0" />
+                                <TextBlock Text="Travel Mode (100% Top-Up)" FontWeight="SemiBold" FontSize="13" />
+                            </StackPanel>
+                            <TextBlock Text="Temporarily charges to 100% for travel, then auto-restores your 80% limit on next unplug."
+                                       FontSize="11" Foreground="{DynamicResource TextFillColorSecondaryBrush}" TextWrapping="Wrap" Margin="0,3,12,0" />
+                        </StackPanel>
+
+                        <ui:Button Grid.Column="1"
+                                   VerticalAlignment="Center"
+                                   Command="{Binding ToggleTravelModeCommand}">
+                            <ui:Button.Style>
+                                <Style TargetType="ui:Button" BasedOn="{StaticResource {x:Type ui:Button}}">
+                                    <Setter Property="Appearance" Value="Secondary" />
+                                    <Setter Property="Content" Value="Top Up" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsTravelMode}" Value="True">
+                                            <Setter Property="Appearance" Value="Danger" />
+                                            <Setter Property="Content" Value="Active (Cancel)" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ui:Button.Style>
+                        </ui:Button>
                     </Grid>
                 </Border>
 

@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChargeGate — AlDente for Windows | Battery Charge Limiter</title>
+  <meta name="description" content="ChargeGate is a lightweight, open-source battery charge threshold limiter for Windows laptops. Cap charging at 80% directly in hardware to extend battery life.">
+  <meta name="theme-color" content="#0b0f19">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%2310b981'%3E%3Cpath d='M16 4h-1V2h-6v2H8C6.9 4 6 4.9 6 6v14c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm-1 9h-2.5v5L8 12h2.5V7L15 13z'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Ambient background glow elements -->
+  <div class="glow-orb orb-1"></div>
+  <div class="glow-orb orb-2"></div>
+  <div class="glow-orb orb-3"></div>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="#" class="brand">
+        <span class="brand-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="2" y="7" width="16" height="10" rx="2" ry="2"></rect>
+            <line x1="22" y1="11" x2="22" y2="13"></line>
+            <polyline points="11 9 8 12 11 15"></polyline>
+            <line x1="14" y1="9" x2="14" y2="15"></line>
+          </svg>
+        </span>
+        <span class="brand-name">ChargeGate</span>
+        <span class="badge-tag">v1.1.0</span>
+      </a>
+
+      <div class="nav-links">
+        <a href="#features">Features</a>
+        <a href="#science">Why 80%?</a>
+        <a href="#compatibility">Supported Laptops</a>
+        <a href="#install">Install</a>
+      </div>
+
+      <div class="nav-actions">
+        <a href="https://ko-fi.com/softwarebrotherhood" target="_blank" rel="noopener" class="btn btn-kofi">
+          <svg class="kofi-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+          Sponsor
+        </a>
+        <a href="https://github.com/softwarebrotherhood/ChargeGate" target="_blank" rel="noopener" class="btn btn-github">
+          <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+            <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+          </svg>
+          GitHub
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <header class="hero">
+    <div class="hero-container">
+      <div class="hero-content">
+        <div class="pill-badge">
+          <span class="pill-dot"></span>
+          <span>Open-Source • Native ACPI / WMI • .NET 9</span>
+        </div>
+        <h1 class="hero-title">
+          <span class="gradient-text">AlDente for Windows.</span><br>
+          The battery limiter Windows forgot to build.
+        </h1>
+        <p class="hero-subtitle">
+          Keep your battery capped at 80% directly in your laptop BIOS. Double your lithium-ion lifespan, prevent thermal swelling, and stop wearing out your battery when plugged in — with zero manufacturer bloatware.
+        </p>
+
+        <div class="hero-cta">
+          <a href="https://github.com/softwarebrotherhood/ChargeGate/releases" class="btn btn-primary btn-large">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Download Free (.exe)
+          </a>
+          <a href="#how-it-works" class="btn btn-secondary btn-large">
+            Interactive Demo
+          </a>
+        </div>
+
+        <div class="hero-stats">
+          <div class="stat-item">
+            <div class="stat-value">2-3x</div>
+            <div class="stat-label">Longer Lifespan</div>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <div class="stat-value">&lt; 20 MB</div>
+            <div class="stat-label">RAM Usage</div>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            <div class="stat-value">0%</div>
+            <div class="stat-label">Telemetry / Ads</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive App Mockup Preview -->
+      <div class="hero-preview" id="how-it-works">
+        <div class="mockup-window">
+          <!-- Window TitleBar -->
+          <div class="window-titlebar">
+            <div class="window-title">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+                <rect x="2" y="7" width="16" height="10" rx="2" ry="2"></rect>
+                <line x1="22" y1="11" x2="22" y2="13"></line>
+              </svg>
+              <span>ChargeGate</span>
+            </div>
+            <div class="window-controls">
+              <span class="control-dot min"></span>
+              <span class="control-dot max"></span>
+              <span class="control-dot close"></span>
+            </div>
+          </div>
+
+          <!-- Window Content Body -->
+          <div class="window-body">
+            <!-- Main Battery Card -->
+            <div class="app-card main-battery-card">
+              <div class="battery-card-header">
+                <div class="battery-card-left">
+                  <div class="battery-icon-wrap">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="2" y="7" width="16" height="10" rx="2" ry="2"></rect>
+                      <line x1="22" y1="11" x2="22" y2="13"></line>
+                      <polyline points="11 9 8 12 11 15"></polyline>
+                      <line x1="14" y1="9" x2="14" y2="15"></line>
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="battery-percent-row">
+                      <span class="big-percent" id="demo-percent">79</span>
+                      <span class="percent-symbol">%</span>
+                    </div>
+                    <div class="battery-status-text" id="demo-status-desc">Plugged in • Charge gated at 80%</div>
+                  </div>
+                </div>
+
+                <div class="battery-card-right">
+                  <div class="health-pill">
+                    <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12">
+                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                    </svg>
+                    <span>Health: 94%</span>
+                  </div>
+                  <div class="capacity-text">41.8 Wh / 44.4 Wh</div>
+                </div>
+              </div>
+
+              <!-- Progress Bar -->
+              <div class="progress-track">
+                <div class="progress-fill" id="demo-progress-fill" style="width: 79%;"></div>
+              </div>
+
+              <!-- Telemetry strip -->
+              <div class="telemetry-strip">
+                <div class="telemetry-item">
+                  <span class="telemetry-icon">⚡</span>
+                  <span id="demo-telemetry-rate">AC Passthrough (0.0 W)</span>
+                </div>
+                <div class="telemetry-item">
+                  <span class="telemetry-icon">🔌</span>
+                  <span id="demo-telemetry-volt">16.44 V</span>
+                </div>
+                <div class="telemetry-item">
+                  <span class="telemetry-icon">🔄</span>
+                  <span id="demo-telemetry-cycles">1,065 cycles</span>
+                </div>
+              </div>
+
+              <div class="card-footer-status">
+                <span class="active-badge" id="demo-active-title">Active Threshold: Battery Health (80%)</span>
+                <span class="feedback-text" id="demo-feedback">Ready</span>
+              </div>
+            </div>
+
+            <!-- Travel Mode Card -->
+            <div class="app-card travel-card">
+              <div class="travel-left">
+                <div class="travel-title">
+                  <span>✈️ Travel Mode (100% Top-Up)</span>
+                </div>
+                <div class="travel-sub">Charges to 100% once, then auto-restores 80% on next unplug.</div>
+              </div>
+              <button class="btn btn-sm btn-travel" id="demo-travel-btn" onclick="toggleDemoTravel()">Top Up</button>
+            </div>
+
+            <!-- Presets Section -->
+            <div class="presets-section">
+              <div class="section-title">Charge Limit Presets</div>
+
+              <div class="preset-card active" id="preset-card-80" onclick="applyDemoPreset(80, 'Battery Health (80%)')">
+                <div class="preset-info">
+                  <div class="preset-header">
+                    <span class="preset-name">Battery Health (80%)</span>
+                    <span class="badge-active" id="badge-80">ACTIVE</span>
+                  </div>
+                  <div class="preset-desc">Recommended golden rule for daily AC plug-in use</div>
+                </div>
+                <button class="btn btn-sm btn-apply" id="btn-80">Active</button>
+              </div>
+
+              <div class="preset-card" id="preset-card-85" onclick="applyDemoPreset(85, 'Balanced Adaptive (85%)')">
+                <div class="preset-info">
+                  <div class="preset-header">
+                    <span class="preset-name">Balanced Adaptive (85%)</span>
+                    <span class="badge-active" id="badge-85" style="display:none;">ACTIVE</span>
+                  </div>
+                  <div class="preset-desc">Balances extra mobility with thermal cell protection</div>
+                </div>
+                <button class="btn btn-sm btn-apply" id="btn-85">Apply</button>
+              </div>
+
+              <div class="preset-card" id="preset-card-100" onclick="applyDemoPreset(100, 'Full Capacity (100%)')">
+                <div class="preset-info">
+                  <div class="preset-header">
+                    <span class="preset-name">Full Capacity (100%)</span>
+                    <span class="badge-active" id="badge-100" style="display:none;">ACTIVE</span>
+                  </div>
+                  <div class="preset-desc">Charges to maximum capacity for long travel off the charger</div>
+                </div>
+                <button class="btn btn-sm btn-apply" id="btn-100">Apply</button>
+              </div>
+            </div>
+
+            <!-- Ko-fi banner in mockup -->
+            <div class="app-card kofi-card">
+              <div class="kofi-left">
+                <div class="kofi-title">❤️ Support Development</div>
+                <div class="kofi-sub">Help keep ChargeGate open-source and free!</div>
+              </div>
+              <a href="https://ko-fi.com/softwarebrotherhood" target="_blank" rel="noopener" class="btn btn-sm btn-kofi-sm">Donate</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- The Science Section -->
+  <section class="section science-section" id="science">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Lithium Battery Chemistry</span>
+        <h2 class="section-title-large">Why does keeping your laptop at 100% kill it?</h2>
+        <p class="section-lead">
+          Modern laptops use high-density Lithium Polymer / Ion batteries. When kept at 100% on AC power, cell voltage is pushed to 4.35V+, accelerating cathode oxidation and permanent capacity degradation.
+        </p>
+      </div>
+
+      <div class="comparison-grid">
+        <div class="comp-card danger">
+          <div class="comp-badge">Standard Windows Behavior</div>
+          <div class="comp-title">Locked at 100% on AC</div>
+          <ul class="comp-list">
+            <li><strong>4.35V – 4.40V</strong> continuous high-voltage strain</li>
+            <li>Electrolyte decomposition &amp; cathode cracking</li>
+            <li>Degrades to ~70% health in just 12 to 18 months</li>
+            <li>Significant risk of <strong>battery swelling / pillowing</strong></li>
+          </ul>
+        </div>
+
+        <div class="comp-card success">
+          <div class="comp-badge highlight">With ChargeGate</div>
+          <div class="comp-title">Gated at 80% with AC Passthrough</div>
+          <ul class="comp-list">
+            <li><strong>~4.05V</strong> optimal resting cell voltage</li>
+            <li>Motherboard switches power entirely to wall adapter</li>
+            <li>Retains <strong>90%+ health after 3–4 years</strong> of daily use</li>
+            <li>Near-zero heat generation and zero micro-cycling wear</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Grid -->
+  <section class="section features-section" id="features">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Engineered for Performance</span>
+        <h2 class="section-title-large">Everything you need. Nothing you don't.</h2>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">🛡️</div>
+          <h3>Native BIOS / ACPI Control</h3>
+          <p>ChargeGate communicates directly with your laptop's Embedded Controller via WMI, setting hardware thresholds in BIOS NVRAM.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">⚡</div>
+          <h3>Zero-Latency Optimistic UI</h3>
+          <p>Instantaneous visual feedback with 0 ms lag. All hardware queries run asynchronously in the background so your app never freezes.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">✈️</div>
+          <h3>Smart Travel Mode</h3>
+          <p>Need 100% for a flight? Click Travel Mode. ChargeGate will top you up to 100% and automatically revert back to 80% as soon as you unplug.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">📊</div>
+          <h3>Hardware Telemetry</h3>
+          <p>Inspect real-time wattage draw ($W$), cell pack voltage ($V$), and true hardware cycle count reported by smart battery registers.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🎯</div>
+          <h3>Dynamic Taskbar Tray Icon</h3>
+          <p>See your live battery percentage badge right next to the Windows clock with color-coded status rings for active gating, charging, or discharging.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon">🪶</div>
+          <h3>Lightweight &amp; Ad-Free</h3>
+          <p>Built on .NET 9 and Windows 11 Fluent UI. No telemetries, no trackers, no accounts, and takes less than 20 MB of system memory.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Supported Laptop Brands -->
+  <section class="section compatibility-section" id="compatibility">
+    <div class="container">
+      <div class="section-header">
+        <span class="section-tag">Universal Hardware Support</span>
+        <h2 class="section-title-large">Built for your laptop</h2>
+        <p class="section-lead">ChargeGate natively interfaces with proprietary ACPI firmware across major manufacturers:</p>
+      </div>
+
+      <div class="brands-grid">
+        <div class="brand-card">
+          <div class="brand-logo-name">HP</div>
+          <div class="brand-method">HP Battery Health Manager</div>
+          <div class="brand-detail">Native BIOS setting interface via <code>root\HP\InstrumentedBIOS</code></div>
+          <div class="brand-status supported">● Supported (80%, 85%, 100%)</div>
+        </div>
+
+        <div class="brand-card">
+          <div class="brand-logo-name">ASUS</div>
+          <div class="brand-method">ASUS ATK / WMI Controller</div>
+          <div class="brand-detail">Direct WMNB <code>0x00120057</code> method invocation</div>
+          <div class="brand-status supported">● Supported (60%, 80%, 100%)</div>
+        </div>
+
+        <div class="brand-card">
+          <div class="brand-logo-name">Lenovo</div>
+          <div class="brand-method">Vantage Conservation &amp; ThinkPad</div>
+          <div class="brand-detail">Supports IdeaPad/Legion Conservation and ThinkPad stop thresholds</div>
+          <div class="brand-status supported">● Supported (60%, 80%, 100%)</div>
+        </div>
+
+        <div class="brand-card">
+          <div class="brand-logo-name">Dell</div>
+          <div class="brand-method">Dell Command | DCIM Sysman</div>
+          <div class="brand-detail">AC Custom and Adaptive charging modes via <code>DCIM_BatteryChargingSettings</code></div>
+          <div class="brand-status supported">● Supported (80%, 85%, 100%)</div>
+        </div>
+
+        <div class="brand-card">
+          <div class="brand-logo-name">Acer</div>
+          <div class="brand-method">Acer Care Center WMI</div>
+          <div class="brand-detail">Direct threshold register controls for Swift, Aspire, and Predator</div>
+          <div class="brand-status supported">● Supported (80%, 100%)</div>
+        </div>
+
+        <div class="brand-card">
+          <div class="brand-logo-name">Universal</div>
+          <div class="brand-method">Smart Alert Monitor</div>
+          <div class="brand-detail">Intelligent audio-visual threshold notifications for all Windows laptops</div>
+          <div class="brand-status supported">● Universal Fallback</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Download & Installation -->
+  <section class="section install-section" id="install">
+    <div class="container">
+      <div class="install-box">
+        <h2 class="install-title">Get ChargeGate Today</h2>
+        <p class="install-subtitle">Free, open-source, and ready for Windows 10 &amp; Windows 11 (22H2+)</p>
+
+        <div class="download-methods">
+          <div class="method-card">
+            <div class="method-badge">Recommended</div>
+            <h3>Standalone Portable .exe</h3>
+            <p>Single executable file. No installation or setup required. Run as Administrator.</p>
+            <a href="https://github.com/softwarebrotherhood/ChargeGate/releases" class="btn btn-primary btn-block">Download Latest Release</a>
+          </div>
+
+          <div class="method-card">
+            <div class="method-badge">Developers</div>
+            <h3>Build From Source</h3>
+            <p>Clone the GitHub repository and run using .NET 9 SDK:</p>
+            <div class="code-block">
+              <code>git clone https://github.com/softwarebrotherhood/ChargeGate.git<br>dotnet run --project src/ChargeGate.UI</code>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Sponsor Callout Section -->
+  <section class="section sponsor-section">
+    <div class="container">
+      <div class="sponsor-card">
+        <div class="sponsor-icon">☕</div>
+        <h2>Support Independent Open-Source Development</h2>
+        <p>ChargeGate is completely free, ad-free, and independently developed by <strong>softwarebrotherhood</strong>. If ChargeGate saved your laptop's battery, consider buying a coffee on Ko-fi to support ongoing maintenance and new hardware providers!</p>
+        <a href="https://ko-fi.com/softwarebrotherhood" target="_blank" rel="noopener" class="btn btn-kofi btn-large">
+          <svg class="kofi-icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+          Sponsor on Ko-fi
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-content">
+      <div class="footer-left">
+        <div class="footer-brand">ChargeGate</div>
+        <p>An open-source project by <a href="https://github.com/softwarebrotherhood" target="_blank" rel="noopener">softwarebrotherhood</a>. Licensed under MIT.</p>
+      </div>
+
+      <div class="footer-links">
+        <a href="https://github.com/softwarebrotherhood/ChargeGate" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/softwarebrotherhood/ChargeGate/blob/main/CHANGELOG.md" target="_blank" rel="noopener">Changelog</a>
+        <a href="https://github.com/softwarebrotherhood/ChargeGate/issues" target="_blank" rel="noopener">Report Issue</a>
+        <a href="https://ko-fi.com/softwarebrotherhood" target="_blank" rel="noopener">Donate on Ko-fi</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

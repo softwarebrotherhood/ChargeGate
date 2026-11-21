@@ -6,6 +6,7 @@ namespace ChargeGate.Core.Services;
 public static class WindowsBatteryReader
 {
     private static int _cachedDesignCapacity = 0;
+    private static int _cachedCycleCount = -1;
 
     public static BatterySnapshot ReadSnapshot(int currentThreshold = 100, string activeModeLabel = "")
     {
@@ -16,6 +17,9 @@ public static class WindowsBatteryReader
         int remainingMinutes = -1;
         int designCapacity = _cachedDesignCapacity;
         int fullChargeCapacity = 0;
+        double voltageVolts = 0;
+        double rateWatts = 0;
+        int cycleCount = _cachedCycleCount;
 
         try
         {
@@ -45,7 +49,7 @@ public static class WindowsBatteryReader
 
         try
         {
-            using var searcherWmi = new ManagementObjectSearcher("root\\wmi", "SELECT PowerOnline, Charging, Discharging, RemainingCapacity FROM BatteryStatus");
+            using var searcherWmi = new ManagementObjectSearcher("root\\wmi", "SELECT PowerOnline, Charging, Discharging, RemainingCapacity, Voltage, DischargeRate, ChargeRate FROM BatteryStatus");
             foreach (ManagementObject obj in searcherWmi.Get())
             {
                 if (obj["PowerOnline"] != null)
@@ -54,6 +58,23 @@ public static class WindowsBatteryReader
                     isCharging = Convert.ToBoolean(obj["Charging"]);
                 if (obj["Discharging"] != null)
                     isDischarging = Convert.ToBoolean(obj["Discharging"]);
+
+                if (obj["Voltage"] != null)
+                {
+                    double mv = Convert.ToDouble(obj["Voltage"]);
+                    if (mv > 0) voltageVolts = Math.Round(mv / 1000.0, 2);
+                }
+
+                if (obj["DischargeRate"] != null)
+                {
+                    double dr = Convert.ToDouble(obj["DischargeRate"]);
+                    if (dr > 0) rateWatts = Math.Round(-dr / 1000.0, 1);
+                }
+                else if (obj["ChargeRate"] != null)
+                {
+                    double cr = Convert.ToDouble(obj["ChargeRate"]);
+                    if (cr > 0) rateWatts = Math.Round(cr / 1000.0, 1);
+                }
                 break;
             }
         }
@@ -110,6 +131,24 @@ public static class WindowsBatteryReader
             }
         }
 
+        if (_cachedCycleCount < 0)
+        {
+            try
+            {
+                using var searcherCycle = new ManagementObjectSearcher("root\\wmi", "SELECT CycleCount FROM BatteryCycleCount");
+                foreach (ManagementObject obj in searcherCycle.Get())
+                {
+                    if (obj["CycleCount"] != null)
+                    {
+                        cycleCount = Convert.ToInt32(obj["CycleCount"]);
+                        _cachedCycleCount = cycleCount;
+                        break;
+                    }
+                }
+            }
+            catch { }
+        }
+
         return new BatterySnapshot
         {
             ChargePercentage = chargePercent,
@@ -119,6 +158,9 @@ public static class WindowsBatteryReader
             EstimatedRemainingMinutes = remainingMinutes,
             DesignCapacityMWh = designCapacity,
             FullChargeCapacityMWh = fullChargeCapacity,
+            CycleCount = cycleCount,
+            VoltageVolts = voltageVolts,
+            RateWatts = rateWatts,
             CurrentThresholdPercentage = currentThreshold,
             ActiveModeLabel = activeModeLabel,
             Timestamp = DateTime.UtcNow

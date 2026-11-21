@@ -9,5 +9,7 @@ public enum VendorType
     Dell = 4,
     Samsung = 5,
     Framework = 6,
+    Acer = 7,
+    Microsoft = 8,
     Generic = 99
 }

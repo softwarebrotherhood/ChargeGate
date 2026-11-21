@@ -25,6 +25,18 @@ public partial class MainViewModel : ObservableObject
     private string _capacityStats = string.Empty;
 
     [ObservableProperty]
+    private string _cycleCountText = "Reading...";
+
+    [ObservableProperty]
+    private string _voltageText = string.Empty;
+
+    [ObservableProperty]
+    private string _powerRateText = "AC Passthrough";
+
+    [ObservableProperty]
+    private bool _isTravelMode;
+
+    [ObservableProperty]
     private string _statusDescription = "Detecting power state...";
 
     [ObservableProperty]
@@ -60,6 +72,7 @@ public partial class MainViewModel : ObservableObject
         _batteryManager = new BatteryManager();
         _batteryManager.SnapshotUpdated += OnSnapshotUpdated;
         _batteryManager.AlertTriggered += OnAlertTriggered;
+        _batteryManager.TravelModeStateChanged += state => Application.Current?.Dispatcher?.Invoke(() => IsTravelMode = state);
 
         HardwareInfo = $"{_batteryManager.MachineManufacturer} {_batteryManager.MachineModel} • {_batteryManager.ActiveProvider.ProviderName}";
         _startWithWindows = AutoStartService.IsAutoStartEnabled();
@@ -116,6 +129,22 @@ public partial class MainViewModel : ObservableObject
         else
         {
             CapacityStats = "Standard Pack";
+        }
+
+        CycleCountText = snap.CycleCount >= 0 ? $"{snap.CycleCount:N0} cycles" : "Smart Pack";
+        VoltageText = snap.VoltageVolts > 0 ? $"{snap.VoltageVolts:F2} V" : string.Empty;
+
+        if (snap.RateWatts != 0)
+        {
+            PowerRateText = snap.RateWatts > 0 ? $"+{snap.RateWatts:F1} W (Charging)" : $"{snap.RateWatts:F1} W (Discharging)";
+        }
+        else if (snap.IsPluggedIn && !snap.IsCharging)
+        {
+            PowerRateText = "AC Passthrough (0.0 W)";
+        }
+        else
+        {
+            PowerRateText = "Idle";
         }
 
         StatusDescription = (IsPluggedIn, IsCharging) switch
@@ -244,6 +273,31 @@ public partial class MainViewModel : ObservableObject
                     "ChargeGate Warning",
                     MessageBoxButton.OK,
                     MessageBoxImage.Warning);
+            }
+        }
+    }
+
+    [RelayCommand]
+    public async Task ToggleTravelModeAsync()
+    {
+        if (IsTravelMode)
+        {
+            StatusFeedback = "Canceling Travel Mode...";
+            bool success = await Task.Run(() => _batteryManager.CancelTravelModeAsync());
+            if (success)
+            {
+                IsTravelMode = false;
+                StatusFeedback = $"Travel Mode canceled. Charge limit restored to {_batteryManager.TravelRestoreThreshold}%.";
+            }
+        }
+        else
+        {
+            StatusFeedback = "Activating Travel Mode (100% Top-Up)...";
+            bool success = await Task.Run(() => _batteryManager.ActivateTravelModeAsync());
+            if (success)
+            {
+                IsTravelMode = true;
+                StatusFeedback = "Travel Mode active: Charging to 100%. Will automatically revert to 80% on next unplug!";
             }
         }
     }
