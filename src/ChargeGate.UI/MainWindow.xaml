@@ -9,7 +9,6 @@
         xmlns:vm="clr-namespace:ChargeGate.UI.ViewModels"
         mc:Ignorable="d"
         Title="ChargeGate - Universal Battery Threshold Limiter"
-        Icon="Resources/app.ico"
         Height="740" Width="490"
         MinHeight="650" MinWidth="440"
         WindowStartupLocation="CenterScreen"

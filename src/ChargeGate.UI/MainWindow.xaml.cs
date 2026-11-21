@@ -18,6 +18,13 @@ public partial class MainWindow : FluentWindow
 
         try
         {
+            var iconUri = new Uri("pack://application:,,,/Resources/app.ico", UriKind.RelativeOrAbsolute);
+            Icon = System.Windows.Media.Imaging.BitmapFrame.Create(iconUri);
+        }
+        catch { }
+
+        try
+        {
             TrayIcon.Icon = SystemIcons.Application;
         }
         catch { }

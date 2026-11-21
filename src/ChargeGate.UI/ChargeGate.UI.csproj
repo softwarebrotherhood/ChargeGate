@@ -10,6 +10,10 @@
     <PackageReference Include="WPF-UI" Version="4.3.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Resource Include="Resources\app.ico" />
+  </ItemGroup>
+
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net9.0-windows</TargetFramework>

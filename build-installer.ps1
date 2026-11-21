@@ -49,8 +49,18 @@ if ($LASTEXITCODE -ne 0) {
 
 # Copy portable binary
 $portableExe = Join-Path $portableDir "ChargeGate.exe"
-Copy-Item (Join-Path $publishDir "ChargeGate.UI.exe") -Destination $portableExe -Force
-Write-Host "  -> Portable executable created: $portableExe" -ForegroundColor Green
+try {
+    Copy-Item (Join-Path $publishDir "ChargeGate.UI.exe") -Destination $portableExe -Force
+    Write-Host "  -> Portable executable created: $portableExe" -ForegroundColor Green
+} catch {
+    $portableExe = Join-Path $portableDir "ChargeGate-portable.exe"
+    try {
+        Copy-Item (Join-Path $publishDir "ChargeGate.UI.exe") -Destination $portableExe -Force
+        Write-Host "  -> Portable executable created: $portableExe" -ForegroundColor Green
+    } catch {
+        Write-Warning "Could not copy portable exe (file in use by running process)."
+    }
+}
 
 # 2. Locate Inno Setup Compiler
 Write-Host "`n[2/3] Locating Inno Setup Compiler (ISCC.exe)..." -ForegroundColor Yellow

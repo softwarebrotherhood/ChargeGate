@@ -9,8 +9,13 @@ public partial class App : Application
     {
         DispatcherUnhandledException += (s, e) =>
         {
+            string details = e.Exception.Message;
+            if (e.Exception.InnerException != null)
+            {
+                details += $"\n\nInner: {e.Exception.InnerException.Message}";
+            }
             MessageBox.Show(
-                $"ChargeGate Error: {e.Exception.Message}\n\nStack:\n{e.Exception.StackTrace}",
+                $"ChargeGate Error: {details}\n\nStack:\n{e.Exception.StackTrace}",
                 "ChargeGate Error",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
