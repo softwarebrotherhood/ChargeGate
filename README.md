@@ -2,7 +2,7 @@
 
 [![Website](https://img.shields.io/badge/Website-GitHub%20Pages-10b981?style=for-the-badge&logo=googlechrome&logoColor=white)](https://softwarebrotherhood.github.io/ChargeGate/)
 [![Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20SoftwareBrotherhood-F16061?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/softwarebrotherhood)
-[![Release](https://img.shields.io/badge/Version-v1.1.0-blue.svg?style=for-the-badge)](CHANGELOG.md)
+[![Release](https://img.shields.io/badge/Version-v1.2.0-blue.svg?style=for-the-badge)](CHANGELOG.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 [![.NET 9](https://img.shields.io/badge/.NET-9.0-purple.svg?style=for-the-badge)](https://dotnet.microsoft.com/)
 
@@ -23,7 +23,11 @@ Prolonged battery exposure to 100% state-of-charge while plugged into wall power
   - **Lenovo**: Supports IdeaPad, Legion (*Conservation Mode*), and ThinkPad threshold controls.
   - **Dell**: Supports DCIM / Command battery charging profiles (`root\dcim\sysman`).
   - **Acer**: Supports Acer Care Center WMI threshold registers.
+  - **Microsoft Surface**: Supports Surface UEFI Battery Limit mode (50% and 80%).
+  - **LG Gram**: Supports LG Control Center Battery Care mode.
   - **Universal Fallback**: Active notification and audible alert monitor for laptops without BIOS-level gating.
+- **Battery Health Diagnostics Exporter**:
+  - One-click export of comprehensive Windows battery degradation history and discharge logs via `powercfg /batteryreport`.
 - **Smart Travel Mode (100% Top-Up)**:
   - Temporarily charges to 100% for travel with one click.
   - Automatically detects when you unplug your charger and seamlessly restores your 80% battery health protection limit in the BIOS.

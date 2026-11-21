@@ -303,6 +303,22 @@ public partial class MainViewModel : ObservableObject
     }
 
     [RelayCommand]
+    public async Task GenerateBatteryReportAsync()
+    {
+        StatusFeedback = "Generating detailed battery diagnostic report...";
+        string? reportPath = await BatteryReportService.GenerateReportAsync();
+        if (!string.IsNullOrEmpty(reportPath))
+        {
+            StatusFeedback = "Battery diagnostic report opened in browser.";
+            BatteryReportService.OpenReport(reportPath);
+        }
+        else
+        {
+            StatusFeedback = "Failed to generate report. powercfg may require elevated permissions.";
+        }
+    }
+
+    [RelayCommand]
     public async Task RefreshAsync()
     {
         StatusFeedback = "Refreshing battery state...";

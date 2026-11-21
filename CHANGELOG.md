@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.0] - 2026-11-21
+
+### Added
+- **Local Windows Setup Installer Builder:**
+  - Added `build-installer.ps1` and `installer/ChargeGate.iss` powered by Inno Setup.
+  - Automatically compiles and outputs both `ChargeGate-Setup-v1.2.0.exe` (Windows Installer with Start Menu / Desktop shortcuts) and standalone portable `ChargeGate.exe`.
+- **Battery Health Diagnostics Exporter:**
+  - Added `BatteryReportService.cs` with an interactive "Report" button in the UI.
+  - Generates comprehensive Windows battery degradation history and discharge statistics (`powercfg /batteryreport`) and opens directly in your browser.
+- **Microsoft Surface Provider:**
+  - Added `SurfaceBatteryProvider.cs` supporting Surface UEFI Battery Limit (50% Kiosk/Dock mode and 80% Smart Charging).
+- **LG Gram Provider:**
+  - Added `LgBatteryProvider.cs` supporting LG Control Center Battery Care 80% limit.
+
 ## [1.1.0] - 2026-11-21
 
 ### Added

@@ -87,6 +87,18 @@ public class BatteryManager : IDisposable
             if (acer.IsSupported) return acer;
         }
 
+        if (mfg.Contains("SURFACE") || MachineModel.ToUpperInvariant().Contains("SURFACE") || mfg.Contains("MICROSOFT"))
+        {
+            var surface = new SurfaceBatteryProvider();
+            if (surface.IsSupported) return surface;
+        }
+
+        if (mfg.Contains("LG") || mfg.Contains("LG ELECTRONICS"))
+        {
+            var lg = new LgBatteryProvider();
+            if (lg.IsSupported) return lg;
+        }
+
         // Generic fallback if no specific hardware provider matches or is supported
         return new GenericFallbackProvider();
     }

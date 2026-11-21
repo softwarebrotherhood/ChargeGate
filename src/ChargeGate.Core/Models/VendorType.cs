@@ -11,5 +11,6 @@ public enum VendorType
     Framework = 6,
     Acer = 7,
     Microsoft = 8,
+    LG = 9,
     Generic = 99
 }

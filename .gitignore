@@ -8,6 +8,8 @@
 *.suo
 *.userosscache
 *.sln.docstates
+dist/
+publish/
 
 ## OS Files
 .DS_Store
