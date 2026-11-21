@@ -1,4 +1,4 @@
-# ChargeGate — "AlDente for Windows"
+# ChargeGate — Universal Battery Threshold Limiter
 
 [![Website](https://img.shields.io/badge/Website-GitHub%20Pages-10b981?style=for-the-badge&logo=googlechrome&logoColor=white)](https://softwarebrotherhood.github.io/ChargeGate/)
 [![Ko-fi](https://img.shields.io/badge/Ko--fi-Support%20SoftwareBrotherhood-F16061?style=for-the-badge&logo=ko-fi&logoColor=white)](https://ko-fi.com/softwarebrotherhood)
