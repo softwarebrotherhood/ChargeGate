@@ -43,9 +43,8 @@ public class AsusBatteryProvider : IBatteryProvider
         }
     }
 
-    public Task<int> GetCurrentThresholdAsync()
+    public Task<int> GetCurrentThresholdAsync() => Task.Run(() =>
     {
-        // On ASUS, querying method returns the current limit
         try
         {
             using var searcher = new ManagementObjectSearcher(WmiNamespace, $"SELECT * FROM {WmiClassName}");
@@ -56,10 +55,9 @@ public class AsusBatteryProvider : IBatteryProvider
                 using var outParams = obj.InvokeMethod("DEVS", inParams, null);
                 
                 var result = Convert.ToUInt32(outParams["Result"]);
-                // Lower byte contains percentage limit
                 int limit = (int)(result & 0xFF);
                 if (limit is 60 or 80 or 100)
-                    return Task.FromResult(limit);
+                    return limit;
             }
         }
         catch (Exception ex)
@@ -67,10 +65,10 @@ public class AsusBatteryProvider : IBatteryProvider
             Debug.WriteLine($"[AsusBatteryProvider] Error reading threshold: {ex.Message}");
         }
 
-        return Task.FromResult(80);
-    }
+        return 80;
+    });
 
-    public Task<bool> SetThresholdAsync(int percentage)
+    public Task<bool> SetThresholdAsync(int percentage) => Task.Run(() =>
     {
         int target = percentage switch
         {
@@ -90,11 +88,10 @@ public class AsusBatteryProvider : IBatteryProvider
 
                 using var outParams = obj.InvokeMethod("DSTS", inParams, null);
                 var result = Convert.ToUInt32(outParams["Result"]);
-                // 1 = SUCCESS in ASUS WMI
                 if (result == 1)
                 {
                     Debug.WriteLine($"[AsusBatteryProvider] Successfully set charge limit to {target}%");
-                    return Task.FromResult(true);
+                    return true;
                 }
             }
         }
@@ -103,13 +100,13 @@ public class AsusBatteryProvider : IBatteryProvider
             Debug.WriteLine($"[AsusBatteryProvider] Error setting threshold: {ex.Message}");
         }
 
-        return Task.FromResult(false);
-    }
+        return false;
+    });
 
     public async Task<BatterySnapshot> GetSnapshotAsync()
     {
-        int threshold = await GetCurrentThresholdAsync();
+        int threshold = await GetCurrentThresholdAsync().ConfigureAwait(false);
         string activeLabel = SupportedThresholds.FirstOrDefault(t => t.Percentage == threshold)?.Label ?? $"{threshold}%";
-        return WindowsBatteryReader.ReadSnapshot(threshold, activeLabel);
+        return await Task.Run(() => WindowsBatteryReader.ReadSnapshot(threshold, activeLabel)).ConfigureAwait(false);
     }
 }

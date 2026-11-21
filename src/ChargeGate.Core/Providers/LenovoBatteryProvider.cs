@@ -67,7 +67,7 @@ public class LenovoBatteryProvider : IBatteryProvider
         catch { return false; }
     }
 
-    public Task<int> GetCurrentThresholdAsync()
+    public Task<int> GetCurrentThresholdAsync() => Task.Run(() =>
     {
         try
         {
@@ -77,7 +77,7 @@ public class LenovoBatteryProvider : IBatteryProvider
                 foreach (ManagementObject obj in searcher.Get())
                 {
                     if (obj["StopPercentage"] != null)
-                        return Task.FromResult(Convert.ToInt32(obj["StopPercentage"]));
+                        return Convert.ToInt32(obj["StopPercentage"]);
                 }
             }
             else
@@ -88,7 +88,7 @@ public class LenovoBatteryProvider : IBatteryProvider
                     if (obj["ConservationMode"] != null)
                     {
                         bool active = Convert.ToBoolean(obj["ConservationMode"]);
-                        return Task.FromResult(active ? 60 : 100);
+                        return active ? 60 : 100;
                     }
                 }
             }
@@ -98,10 +98,10 @@ public class LenovoBatteryProvider : IBatteryProvider
             Debug.WriteLine($"[LenovoBatteryProvider] Error reading threshold: {ex.Message}");
         }
 
-        return Task.FromResult(100);
-    }
+        return 100;
+    });
 
-    public Task<bool> SetThresholdAsync(int percentage)
+    public Task<bool> SetThresholdAsync(int percentage) => Task.Run(() =>
     {
         try
         {
@@ -113,7 +113,7 @@ public class LenovoBatteryProvider : IBatteryProvider
                     using var inParams = obj.GetMethodParameters("SetStopPercentage");
                     inParams["Percentage"] = (uint)percentage;
                     obj.InvokeMethod("SetStopPercentage", inParams, null);
-                    return Task.FromResult(true);
+                    return true;
                 }
             }
             else
@@ -125,7 +125,7 @@ public class LenovoBatteryProvider : IBatteryProvider
                     using var inParams = obj.GetMethodParameters("SetConservationMode");
                     inParams["Mode"] = enableConservation ? 1u : 0u;
                     obj.InvokeMethod("SetConservationMode", inParams, null);
-                    return Task.FromResult(true);
+                    return true;
                 }
             }
         }
@@ -134,13 +134,13 @@ public class LenovoBatteryProvider : IBatteryProvider
             Debug.WriteLine($"[LenovoBatteryProvider] Error setting threshold: {ex.Message}");
         }
 
-        return Task.FromResult(false);
-    }
+        return false;
+    });
 
     public async Task<BatterySnapshot> GetSnapshotAsync()
     {
-        int threshold = await GetCurrentThresholdAsync();
+        int threshold = await GetCurrentThresholdAsync().ConfigureAwait(false);
         string activeLabel = SupportedThresholds.FirstOrDefault(t => t.Percentage == threshold)?.Label ?? $"{threshold}%";
-        return WindowsBatteryReader.ReadSnapshot(threshold, activeLabel);
+        return await Task.Run(() => WindowsBatteryReader.ReadSnapshot(threshold, activeLabel)).ConfigureAwait(false);
     }
 }

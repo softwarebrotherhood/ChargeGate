@@ -131,13 +131,20 @@ public class BatteryManager : IDisposable
 
     public async Task<bool> SetThresholdAsync(int percentage)
     {
-        bool success = await ActiveProvider.SetThresholdAsync(percentage);
+        bool success = await ActiveProvider.SetThresholdAsync(percentage).ConfigureAwait(false);
         if (success)
         {
-            var snap = await ActiveProvider.GetSnapshotAsync();
-            CurrentSnapshot = snap;
-            ThresholdChanged?.Invoke(snap.CurrentThresholdPercentage, snap.ActiveModeLabel);
-            SnapshotUpdated?.Invoke(snap);
+            var opt = ActiveProvider.SupportedThresholds.FirstOrDefault(t => t.Percentage == percentage);
+            string modeLabel = opt?.Label ?? $"{percentage}%";
+
+            CurrentSnapshot = CurrentSnapshot with
+            {
+                CurrentThresholdPercentage = percentage,
+                ActiveModeLabel = modeLabel
+            };
+
+            ThresholdChanged?.Invoke(percentage, modeLabel);
+            SnapshotUpdated?.Invoke(CurrentSnapshot);
         }
         return success;
     }

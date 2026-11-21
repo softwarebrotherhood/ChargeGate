@@ -46,7 +46,7 @@ public class HpBatteryProvider : IBatteryProvider
         }
     }
 
-    public Task<int> GetCurrentThresholdAsync()
+    public Task<int> GetCurrentThresholdAsync() => Task.Run(() =>
     {
         try
         {
@@ -54,7 +54,7 @@ public class HpBatteryProvider : IBatteryProvider
             foreach (ManagementObject obj in searcher.Get())
             {
                 var val = obj["CurrentValue"]?.ToString();
-                return Task.FromResult(MapValueToPercentage(val));
+                return MapValueToPercentage(val);
             }
         }
         catch (Exception ex)
@@ -62,10 +62,10 @@ public class HpBatteryProvider : IBatteryProvider
             Debug.WriteLine($"[HpBatteryProvider] Error reading threshold: {ex.Message}");
         }
 
-        return Task.FromResult(100);
-    }
+        return 100;
+    });
 
-    public Task<bool> SetThresholdAsync(int percentage)
+    public Task<bool> SetThresholdAsync(int percentage) => Task.Run(() =>
     {
         string targetValue = percentage switch
         {
@@ -91,27 +91,27 @@ public class HpBatteryProvider : IBatteryProvider
                 if (returnVal == 0)
                 {
                     Debug.WriteLine($"[HpBatteryProvider] Successfully set '{SettingName}' to '{targetValue}'");
-                    return Task.FromResult(true);
+                    return true;
                 }
 
                 Debug.WriteLine($"[HpBatteryProvider] SetBIOSSetting returned code {returnVal} (6 = Access Denied / Admin required)");
-                return Task.FromResult(false);
+                return false;
             }
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"[HpBatteryProvider] Error setting threshold: {ex.Message}");
-            return Task.FromResult(false);
+            return false;
         }
 
-        return Task.FromResult(false);
-    }
+        return false;
+    });
 
     public async Task<BatterySnapshot> GetSnapshotAsync()
     {
-        int threshold = await GetCurrentThresholdAsync();
+        int threshold = await GetCurrentThresholdAsync().ConfigureAwait(false);
         string activeLabel = SupportedThresholds.FirstOrDefault(t => t.Percentage == threshold)?.Label ?? $"{threshold}%";
-        return WindowsBatteryReader.ReadSnapshot(threshold, activeLabel);
+        return await Task.Run(() => WindowsBatteryReader.ReadSnapshot(threshold, activeLabel)).ConfigureAwait(false);
     }
 
     public static int MapValueToPercentage(string? rawValue) => rawValue switch

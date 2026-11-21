@@ -39,7 +39,7 @@ public class DellBatteryProvider : IBatteryProvider
         catch { return false; }
     }
 
-    public Task<int> GetCurrentThresholdAsync()
+    public Task<int> GetCurrentThresholdAsync() => Task.Run(() =>
     {
         try
         {
@@ -49,14 +49,14 @@ public class DellBatteryProvider : IBatteryProvider
                 if (obj["HighThreshold"] != null)
                 {
                     int high = Convert.ToInt32(obj["HighThreshold"]);
-                    if (high > 0) return Task.FromResult(high);
+                    if (high > 0) return high;
                 }
                 
                 var mode = obj["ChargingMode"]?.ToString();
                 if (mode?.Contains("AC", StringComparison.OrdinalIgnoreCase) == true)
-                    return Task.FromResult(80);
+                    return 80;
                 if (mode?.Contains("Adaptive", StringComparison.OrdinalIgnoreCase) == true)
-                    return Task.FromResult(85);
+                    return 85;
             }
         }
         catch (Exception ex)
@@ -64,10 +64,10 @@ public class DellBatteryProvider : IBatteryProvider
             Debug.WriteLine($"[DellBatteryProvider] Error reading threshold: {ex.Message}");
         }
 
-        return Task.FromResult(100);
-    }
+        return 100;
+    });
 
-    public Task<bool> SetThresholdAsync(int percentage)
+    public Task<bool> SetThresholdAsync(int percentage) => Task.Run(() =>
     {
         try
         {
@@ -86,7 +86,7 @@ public class DellBatteryProvider : IBatteryProvider
                 inParams["Mode"] = mode;
                 using var outParams = obj.InvokeMethod("SetChargingMode", inParams, null);
                 var ret = Convert.ToUInt32(outParams["ReturnValue"]);
-                if (ret == 0) return Task.FromResult(true);
+                if (ret == 0) return true;
             }
         }
         catch (Exception ex)
@@ -94,13 +94,13 @@ public class DellBatteryProvider : IBatteryProvider
             Debug.WriteLine($"[DellBatteryProvider] Error setting threshold: {ex.Message}");
         }
 
-        return Task.FromResult(false);
-    }
+        return false;
+    });
 
     public async Task<BatterySnapshot> GetSnapshotAsync()
     {
-        int threshold = await GetCurrentThresholdAsync();
+        int threshold = await GetCurrentThresholdAsync().ConfigureAwait(false);
         string activeLabel = SupportedThresholds.FirstOrDefault(t => t.Percentage == threshold)?.Label ?? $"{threshold}%";
-        return WindowsBatteryReader.ReadSnapshot(threshold, activeLabel);
+        return await Task.Run(() => WindowsBatteryReader.ReadSnapshot(threshold, activeLabel)).ConfigureAwait(false);
     }
 }

@@ -28,9 +28,9 @@ public class GenericFallbackProvider : IBatteryProvider
         return Task.FromResult(true);
     }
 
-    public Task<BatterySnapshot> GetSnapshotAsync()
+    public Task<BatterySnapshot> GetSnapshotAsync() => Task.Run(() =>
     {
         string activeLabel = SupportedThresholds.FirstOrDefault(t => t.Percentage == _threshold)?.Label ?? $"Alert at {_threshold}%";
-        return Task.FromResult(WindowsBatteryReader.ReadSnapshot(_threshold, activeLabel));
-    }
+        return WindowsBatteryReader.ReadSnapshot(_threshold, activeLabel);
+    });
 }

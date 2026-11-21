@@ -51,6 +51,8 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private bool _startWithWindows;
 
+    private bool _isApplying;
+
     public ObservableCollection<ThresholdItemViewModel> ThresholdOptions { get; } = new();
 
     public MainViewModel()
@@ -78,7 +80,7 @@ public partial class MainViewModel : ObservableObject
     private async Task InitializeAsync()
     {
         _batteryManager.StartMonitoring();
-        var snap = await _batteryManager.RefreshSnapshotAsync();
+        var snap = await Task.Run(() => _batteryManager.RefreshSnapshotAsync());
         UpdateFromSnapshot(snap);
     }
 
@@ -146,44 +148,112 @@ public partial class MainViewModel : ObservableObject
     [RelayCommand]
     public async Task SetThresholdAsync(int percentage)
     {
-        IsBusy = true;
-        StatusFeedback = $"Applying {percentage}% charge limit...";
+        if (_isApplying) return;
+        _isApplying = true;
 
-        bool success = await _batteryManager.SetThresholdAsync(percentage);
-        IsBusy = false;
+        int previousThreshold = SelectedThreshold;
+        string previousModeTitle = ActiveModeTitle;
+
+        // 1. Instant Optimistic UI Update (0ms latency, eliminates UI freeze)
+        SelectedThreshold = percentage;
+        var selectedOpt = ThresholdOptions.FirstOrDefault(t => t.Percentage == percentage);
+        if (selectedOpt != null)
+        {
+            ActiveModeTitle = selectedOpt.Label;
+        }
+
+        foreach (var item in ThresholdOptions)
+        {
+            item.IsActive = (item.Percentage == percentage);
+        }
+
+        StatusDescription = (IsPluggedIn, IsCharging) switch
+        {
+            (true, true) => $"Charging ({BatteryPercentage}%) • AC Connected",
+            (true, false) => $"Plugged in • Charge gated at {percentage}%",
+            (false, _) => $"Discharging ({BatteryPercentage}%) • Battery Power"
+        };
+
+        StatusFeedback = $"Applying {percentage}% limit in BIOS...";
+
+        // 2. Execute WMI in background thread without stalling the UI message pump
+        bool success = false;
+        try
+        {
+            success = await Task.Run(() => _batteryManager.SetThresholdAsync(percentage));
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[MainViewModel] SetThreshold error: {ex.Message}");
+            success = false;
+        }
+        finally
+        {
+            _isApplying = false;
+        }
 
         if (success)
         {
-            SelectedThreshold = percentage;
-            StatusFeedback = $"Successfully set battery threshold to {percentage}%!";
+            StatusFeedback = $"Active: {percentage}% limit successfully saved to BIOS!";
 
-            var snap = await _batteryManager.RefreshSnapshotAsync();
-            UpdateFromSnapshot(snap);
-
-            MessageBox.Show(
-                $"Battery charge threshold set to {percentage}% ({snap.ActiveModeLabel})!\n\nYour laptop BIOS will now cap charging at this level.",
-                "ChargeGate",
-                MessageBoxButton.OK,
-                MessageBoxImage.Information);
+            var window = Application.Current?.MainWindow;
+            if (window != null)
+            {
+                MessageBox.Show(
+                    window,
+                    $"Battery charge threshold set to {percentage}% ({ActiveModeTitle})!\n\nYour laptop BIOS will now cap charging at this level.",
+                    "ChargeGate",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
+            else
+            {
+                MessageBox.Show(
+                    $"Battery charge threshold set to {percentage}% ({ActiveModeTitle})!\n\nYour laptop BIOS will now cap charging at this level.",
+                    "ChargeGate",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information);
+            }
         }
         else
         {
+            // Revert optimistic UI on failure
+            SelectedThreshold = previousThreshold;
+            ActiveModeTitle = previousModeTitle;
+            foreach (var item in ThresholdOptions)
+            {
+                item.IsActive = (item.Percentage == previousThreshold);
+            }
+
             StatusFeedback = "Failed to apply threshold. Administrator privileges may be required.";
-            MessageBox.Show(
-                "Unable to apply the charge threshold.\n\nPlease ensure ChargeGate is run as Administrator, or that your BIOS allows WMI management.",
-                "ChargeGate Warning",
-                MessageBoxButton.OK,
-                MessageBoxImage.Warning);
+
+            var window = Application.Current?.MainWindow;
+            if (window != null)
+            {
+                MessageBox.Show(
+                    window,
+                    "Unable to apply the charge threshold.\n\nPlease ensure ChargeGate is run as Administrator, or that your BIOS allows WMI management.",
+                    "ChargeGate Warning",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+            else
+            {
+                MessageBox.Show(
+                    "Unable to apply the charge threshold.\n\nPlease ensure ChargeGate is run as Administrator, or that your BIOS allows WMI management.",
+                    "ChargeGate Warning",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
         }
     }
 
     [RelayCommand]
     public async Task RefreshAsync()
     {
-        IsBusy = true;
-        var snap = await _batteryManager.RefreshSnapshotAsync();
+        StatusFeedback = "Refreshing battery state...";
+        var snap = await Task.Run(() => _batteryManager.RefreshSnapshotAsync());
         UpdateFromSnapshot(snap);
-        IsBusy = false;
         StatusFeedback = "Battery state updated.";
     }
 

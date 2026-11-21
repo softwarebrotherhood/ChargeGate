@@ -5,6 +5,8 @@ namespace ChargeGate.Core.Services;
 
 public static class WindowsBatteryReader
 {
+    private static int _cachedDesignCapacity = 0;
+
     public static BatterySnapshot ReadSnapshot(int currentThreshold = 100, string activeModeLabel = "")
     {
         int chargePercent = 100;
@@ -12,7 +14,7 @@ public static class WindowsBatteryReader
         bool isCharging = false;
         bool isDischarging = false;
         int remainingMinutes = -1;
-        int designCapacity = 0;
+        int designCapacity = _cachedDesignCapacity;
         int fullChargeCapacity = 0;
 
         try
@@ -72,32 +74,40 @@ public static class WindowsBatteryReader
         }
         catch { }
 
-        try
-        {
-            using var searcherDesign = new ManagementObjectSearcher("root\\CIMV2", "SELECT DesignCapacity FROM Win32_PortableBattery");
-            foreach (ManagementObject obj in searcherDesign.Get())
-            {
-                if (obj["DesignCapacity"] != null)
-                    designCapacity = Convert.ToInt32(obj["DesignCapacity"]);
-                break;
-            }
-        }
-        catch { }
-
-        // If design capacity is missing from Win32_PortableBattery, try root\wmi BatteryStaticData
         if (designCapacity == 0)
         {
             try
             {
-                using var searcherStatic = new ManagementObjectSearcher("root\\wmi", "SELECT DesignedCapacity FROM BatteryStaticData");
-                foreach (ManagementObject obj in searcherStatic.Get())
+                using var searcherDesign = new ManagementObjectSearcher("root\\CIMV2", "SELECT DesignCapacity FROM Win32_PortableBattery");
+                foreach (ManagementObject obj in searcherDesign.Get())
                 {
-                    if (obj["DesignedCapacity"] != null)
-                        designCapacity = Convert.ToInt32(obj["DesignedCapacity"]);
+                    if (obj["DesignCapacity"] != null)
+                        designCapacity = Convert.ToInt32(obj["DesignCapacity"]);
                     break;
                 }
             }
             catch { }
+
+            // If design capacity is missing from Win32_PortableBattery, try root\wmi BatteryStaticData
+            if (designCapacity == 0)
+            {
+                try
+                {
+                    using var searcherStatic = new ManagementObjectSearcher("root\\wmi", "SELECT DesignedCapacity FROM BatteryStaticData");
+                    foreach (ManagementObject obj in searcherStatic.Get())
+                    {
+                        if (obj["DesignedCapacity"] != null)
+                            designCapacity = Convert.ToInt32(obj["DesignedCapacity"]);
+                        break;
+                    }
+                }
+                catch { }
+            }
+
+            if (designCapacity > 0)
+            {
+                _cachedDesignCapacity = designCapacity;
+            }
         }
 
         return new BatterySnapshot
