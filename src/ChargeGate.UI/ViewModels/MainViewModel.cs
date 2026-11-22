@@ -66,6 +66,24 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     private string _currentTheme = "System";
 
+    [ObservableProperty]
+    private string _graphMode = "Watts"; // "Watts" or "Percentage"
+
+    [ObservableProperty]
+    private string _currentPowerWatts = "0.0 W";
+
+    [ObservableProperty]
+    private string _averageDrainText = "--";
+
+    [ObservableProperty]
+    private string _peakChargeText = "--";
+
+    [ObservableProperty]
+    private string _graphModeLabel = "Power Flow (Watts)";
+
+    [ObservableProperty]
+    private List<BatteryTelemetryPoint> _telemetryHistory = new();
+
     private bool _isApplying;
 
     public ObservableCollection<ThresholdItemViewModel> ThresholdOptions { get; } = new();
@@ -76,6 +94,7 @@ public partial class MainViewModel : ObservableObject
         _batteryManager.SnapshotUpdated += OnSnapshotUpdated;
         _batteryManager.AlertTriggered += OnAlertTriggered;
         _batteryManager.TravelModeStateChanged += state => Application.Current?.Dispatcher?.Invoke(() => IsTravelMode = state);
+        _batteryManager.TelemetryService.HistoryUpdated += OnHistoryUpdated;
 
         HardwareInfo = $"{_batteryManager.MachineManufacturer} {_batteryManager.MachineModel} • {_batteryManager.ActiveProvider.ProviderName}";
         _startWithWindows = AutoStartService.IsAutoStartEnabled();
@@ -90,6 +109,7 @@ public partial class MainViewModel : ObservableObject
                 opt.Percentage == SelectedThreshold));
         }
 
+        OnHistoryUpdated();
         _ = InitializeAsync();
     }
 
@@ -347,6 +367,33 @@ public partial class MainViewModel : ObservableObject
         }
 
         StatusFeedback = $"Theme switched to: {CurrentTheme}";
+    }
+
+    [RelayCommand]
+    public void SwitchGraphMode(string mode)
+    {
+        GraphMode = mode;
+        GraphModeLabel = mode == "Watts" ? "Power Flow (Watts)" : "Battery Level (%)";
+    }
+
+    private void OnHistoryUpdated()
+    {
+        Application.Current?.Dispatcher?.Invoke(() =>
+        {
+            var history = _batteryManager.TelemetryService.GetHistory();
+            TelemetryHistory = history.ToList();
+
+            var svc = _batteryManager.TelemetryService;
+            CurrentPowerWatts = svc.CurrentWatts switch
+            {
+                > 0 => $"+{svc.CurrentWatts:F1} W",
+                < 0 => $"{svc.CurrentWatts:F1} W",
+                _ => "0.0 W"
+            };
+
+            AverageDrainText = svc.AverageDrainWatts > 0 ? $"{svc.AverageDrainWatts:F1} W" : "--";
+            PeakChargeText = svc.PeakChargingWatts > 0 ? $"+{svc.PeakChargingWatts:F1} W" : "--";
+        });
     }
 
     [RelayCommand]

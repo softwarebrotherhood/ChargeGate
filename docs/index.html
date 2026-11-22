@@ -26,7 +26,7 @@
       <a href="#" class="brand">
         <img src="assets/icon.png" width="32" height="32" alt="ChargeGate Icon" style="border-radius: 8px; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);">
         <span class="brand-name">ChargeGate</span>
-        <span class="badge-tag">v1.3.0</span>
+        <span class="badge-tag">v1.4.0</span>
       </a>
 
       <div class="nav-links">
@@ -181,6 +181,48 @@
               <div class="card-footer-status">
                 <span class="active-badge" id="demo-active-title">Active Threshold: Battery Health (80%)</span>
                 <span class="feedback-text" id="demo-feedback">Ready</span>
+              </div>
+            </div>
+
+            <!-- Telemetry & Live Power Flow Graph Card -->
+            <div class="app-card graph-card">
+              <div class="graph-card-header">
+                <div class="graph-title-wrap">
+                  <span class="graph-icon">⚡</span>
+                  <div>
+                    <div class="graph-title">Power &amp; Drain Telemetry</div>
+                    <div class="graph-sub" id="demo-graph-sub">Live Power Flow (Watts)</div>
+                  </div>
+                </div>
+                <div class="graph-toggle-buttons">
+                  <button class="btn btn-xs active" id="demo-tab-watts" onclick="setDemoGraphMode('Watts')">Watts (W)</button>
+                  <button class="btn btn-xs" id="demo-tab-percent" onclick="setDemoGraphMode('Percentage')">Level (%)</button>
+                </div>
+              </div>
+
+              <div class="graph-stats-row">
+                <div class="graph-stat-chip">
+                  <span class="stat-chip-label">Live Flow</span>
+                  <span class="stat-chip-val accent" id="demo-graph-flow">+32.4 W</span>
+                </div>
+                <div class="graph-stat-chip">
+                  <span class="stat-chip-label">Avg Drain</span>
+                  <span class="stat-chip-val amber" id="demo-graph-drain">14.2 W</span>
+                </div>
+                <div class="graph-stat-chip">
+                  <span class="stat-chip-label">Peak Charge</span>
+                  <span class="stat-chip-val green" id="demo-graph-peak">+45.0 W</span>
+                </div>
+              </div>
+
+              <div class="graph-canvas-wrap">
+                <canvas id="demo-telemetry-canvas" width="400" height="120"></canvas>
+              </div>
+
+              <div class="graph-legend">
+                <span class="legend-item"><span class="dot green"></span>Charger (+W)</span>
+                <span class="legend-item"><span class="dot amber"></span>Drain (-W)</span>
+                <span class="legend-item"><span class="line gray"></span>0W Passthrough</span>
               </div>
             </div>
 

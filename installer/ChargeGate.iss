@@ -2,7 +2,7 @@
 ; Generates a professional Windows Setup Installer (.exe)
 
 #define MyAppName "ChargeGate"
-#define MyAppVersion "1.3.0"
+#define MyAppVersion "1.4.0"
 #define MyAppPublisher "SoftwareBrotherHood"
 #define MyAppURL "https://github.com/softwarebrotherhood/ChargeGate"
 #define MyAppExeName "ChargeGate.UI.exe"

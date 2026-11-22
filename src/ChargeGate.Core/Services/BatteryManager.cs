@@ -25,6 +25,7 @@ public class BatteryManager : IDisposable
 
     public bool IsTravelModeActive { get; private set; }
     public int TravelRestoreThreshold { get; private set; } = 80;
+    public BatteryTelemetryService TelemetryService { get; } = new();
 
     private bool _alertFiredForCurrentCycle = false;
 
@@ -33,6 +34,7 @@ public class BatteryManager : IDisposable
         DetectHardware();
         ActiveProvider = ResolveProvider();
         CurrentSnapshot = WindowsBatteryReader.ReadSnapshot();
+        TelemetryService.RecordSnapshot(CurrentSnapshot);
     }
 
     private void DetectHardware()
@@ -132,6 +134,7 @@ public class BatteryManager : IDisposable
     {
         var snapshot = await ActiveProvider.GetSnapshotAsync();
         CurrentSnapshot = snapshot;
+        TelemetryService.RecordSnapshot(snapshot);
         SnapshotUpdated?.Invoke(snapshot);
 
         // Check for Travel Mode auto-revert upon unplugging AC

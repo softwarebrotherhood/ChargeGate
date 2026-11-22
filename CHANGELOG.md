@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.4.0] - 2026-11-22
+
+### Added
+- **Real-Time Battery Usage, Drain & Charger Telemetry Graph:**
+  - Added native vector graph (`BatteryGraphControl`) rendering real-time battery telemetry with zero external dependencies and smooth 60fps DirectX hardware acceleration.
+  - **Power Flow (Watts):** Dual-zone visualization displaying real-time AC charger wattage ($+W$) in emerald green and battery discharge drain ($-W$) in amber, with a distinct $0.0\text{ W}$ passthrough baseline when gated at the threshold.
+  - **Battery Level (%):** Visual charge curve showing battery capacity over time with gradient fill and dashed active gate limit indicator (e.g. 80% Gate).
+  - **Live Metric Summary Chips:** Displays real-time live power flow ($W$), average discharge drain rate, and peak charging input.
+  - **Interactive Hover Crosshair & Tooltips:** Inspect exact historical timestamps, percentages, and wattage draw by moving the cursor across the graph.
+  - **Interactive Showcase Mockup:** Added live animated canvas telemetry graph simulation and dual-mode toggling to the documentation website (`docs/`).
+
 ## [1.3.0] - 2026-11-21
 
 ### Added
